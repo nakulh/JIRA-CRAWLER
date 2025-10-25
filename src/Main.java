@@ -1,15 +1,94 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+/**
+ * Main entry point for the Jira Data Scraping and Transformation Pipeline
+ */
+public class Main {
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+    
+    public static void main(String[] args) {
+        System.out.println("Apache Jira Data Scraping Pipeline");
+        System.out.println("==================================");
+        
+        try {
+            // Validate configuration
+            CrawlerConfig.validateConfig();
+            CrawlerConfig.printConfig();
+            
+            // Initialize and run the crawler
+            JiraCrawler crawler = new JiraCrawler();
+            
+            // Handle command line arguments
+            if (args.length > 0) {
+                handleCommands(args, crawler);
+            } else {
+                // Default: run full crawl
+                crawler.crawlAndTransform();
+            }
+            
+            System.out.println("Pipeline completed successfully!");
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Pipeline failed", e);
+            System.err.println("Error: " + e.getMessage());
+            System.exit(1);
         }
+    }
+    
+    /**
+     * Handles command line arguments for different operations
+     */
+    private static void handleCommands(String[] args, JiraCrawler crawler) {
+        String command = args[0].toLowerCase();
+        
+        switch (command) {
+            case "crawl":
+                crawler.crawlAndTransform();
+                break;
+                
+            case "status":
+                StateManager stateManager = new StateManager();
+                stateManager.printStateSummary();
+                
+                DataWriter dataWriter = new DataWriter();
+                dataWriter.printStatistics();
+                dataWriter.close();
+                break;
+                
+            case "reset":
+                if (args.length > 1) {
+                    String project = args[1].toUpperCase();
+                    StateManager resetManager = new StateManager();
+                    resetManager.resetState(project);
+                    System.out.println("Reset state for project: " + project);
+                } else {
+                    System.out.println("Usage: java Main reset <PROJECT_KEY>");
+                }
+                break;
+                
+            case "help":
+            default:
+                printUsage();
+                break;
+        }
+    }
+    
+    /**
+     * Prints usage information
+     */
+    private static void printUsage() {
+        System.out.println("Usage: java Main [command] [options]");
+        System.out.println();
+        System.out.println("Commands:");
+        System.out.println("  crawl          - Run the full crawling pipeline (default)");
+        System.out.println("  status         - Show current crawling status and output statistics");
+        System.out.println("  reset <project> - Reset crawling state for a specific project");
+        System.out.println("  help           - Show this help message");
+        System.out.println();
+        System.out.println("Examples:");
+        System.out.println("  java Main                    # Run full crawl");
+        System.out.println("  java Main status             # Show status");
+        System.out.println("  java Main reset KAFKA        # Reset KAFKA project state");
     }
 }
