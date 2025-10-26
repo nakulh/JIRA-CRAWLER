@@ -35,7 +35,7 @@ flowchart TD
 ### 1. **IssueKeyQueue** - Unscraped Issue Queue
 - **Purpose**: Central queue for managing issue keys that need to be scraped, prevents overlap of scrapping work by multiple scrapping workers.
 - **Thread Safety**: Uses `BlockingQueue` for concurrent access
-- **Capacity Management**: Configurable capacity (1000 by default) to prevent memory issues
+- **Capacity Management**: Configurable capacity to prevent memory issues
 
 ### 2. **DomainRateLimiter** - Intelligent Rate Management
 - **Purpose**: Domain-specific rate limiting to respect server resources. Can be tweaked to allow Domain+proxy based rate limiting to allow multiple workers to scrape with separate rate limits (assuming use of proxy servers).
