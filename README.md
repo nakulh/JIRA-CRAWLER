@@ -254,14 +254,35 @@ java -Xmx4g -jar jira-crawler-1.0.0-jar-with-dependencies.jar
 - **Maven**: Standard build and dependency management
 - **No external databases**: File-based state for simplicity
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+```mermaid
+---
+config:
+look: handDrawn
+---
+flowchart TD
+A["Issue key producer thread"] -- "2 - Enqueue issue key" --> B["Unscraped issue Queue"]
+A -- "1 - Fetch issue keys for a project" --> n1["JIRA Website"]
+A ~~~ D1[" "]
+B ~~~ D1
+n1 ~~~ D1
+D1 ~~~ C(["Web scraper thread pool"])
+C -- "3 - Take issue key from queue" --> B
+C -- "4 - Each thread checks if it is allowed to fetch issue web page" --> n2["HashMap containing rate limiter related information"]
+C -- "5 - Fetch the webpage containing the entire issue" --> n1
+C -- "6 - Save state to local storage upon each successful issue processing" --> n3["Local file containing state for each Jira project"]
+C -- "7 - Save issue info as JSONL" --> n4["Local storage containing JSONL files"]
+A@{ shape: rounded}
+B@{ shape: rect}
+n1@{ shape: rect}
+D1@{ shape: fr-circ}
+A:::Peach
+B:::Aqua
+C:::Peach
+n2:::Aqua
+n3:::Aqua
+n4:::Aqua
+classDef Peach stroke-width:1px, stroke-dasharray:none, stroke:#FBB35A, fill:#FFEFDB, color:#8F632D
+classDef Aqua stroke-width:1px, stroke-dasharray:none, stroke:#46EDC8, fill:#DEFFF8, color:#378E7A
+style D1 stroke-width:1px,stroke-dasharray: 1,stroke:none
+linkStyle 5 stroke:none,fill:none
+```

@@ -19,7 +19,7 @@ public class StateManager {
     /**
      * Loads the crawling state for a project
      */
-    public CrawlState loadState(String projectKey) {
+    public synchronized CrawlState loadState(String projectKey) {
         Path stateFile = getStateFilePath(projectKey);
         
         if (!Files.exists(stateFile)) {
@@ -70,7 +70,7 @@ public class StateManager {
     /**
      * Saves the crawling state to disk
      */
-    public void saveState(CrawlState state) throws IOException {
+    public synchronized void saveState(CrawlState state) throws IOException {
         Properties props = new Properties();
         props.setProperty("projectKey", state.getProjectKey());
         props.setProperty("lastProcessedIndex", String.valueOf(state.getLastProcessedIndex()));

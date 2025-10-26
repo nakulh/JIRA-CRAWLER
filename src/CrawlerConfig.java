@@ -12,6 +12,11 @@ public class CrawlerConfig {
     public static final int CRAWL_DELAY_MS = 2000;
     public static final int REQUEST_TIMEOUT_SECONDS = 30;
     
+    // Threading Configuration
+    public static final int WORKER_THREAD_COUNT = 4;
+    public static final int PRODUCER_THREAD_COUNT = 1;
+    public static final int QUEUE_CAPACITY = 1000;
+    
     // Target Projects (can be modified to scrape different projects)
     public static final List<String> TARGET_PROJECTS = Arrays.asList(
         "ACE",
@@ -50,8 +55,11 @@ public class CrawlerConfig {
     public static void printConfig() {
         System.out.println("Jira Web Scraper Configuration:");
         System.out.println("===============================");
-        System.out.println("Scraping Method: HTML Web Scraping");
+        System.out.println("Scraping Method: Multi-threaded HTML Web Scraping");
         System.out.println("Target Projects: " + TARGET_PROJECTS);
+        System.out.println("Worker Threads: " + WORKER_THREAD_COUNT);
+        System.out.println("Producer Threads: " + PRODUCER_THREAD_COUNT);
+        System.out.println("Queue Capacity: " + QUEUE_CAPACITY);
         System.out.println("Crawl Delay: " + CRAWL_DELAY_MS + "ms");
         System.out.println("Max Retries: " + MAX_RETRIES);
         System.out.println("Include Comments: " + INCLUDE_COMMENTS);

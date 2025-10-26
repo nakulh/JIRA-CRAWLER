@@ -22,9 +22,7 @@ public class JiraWebScraper {
     private static final Logger logger = Logger.getLogger(JiraWebScraper.class.getName());
     private static final String JIRA_BASE_URL = CrawlerConfig.JIRA_BASE_URL;
     private static final int MAX_RETRIES = CrawlerConfig.MAX_RETRIES;
-    private static final int CRAWL_DELAY_MS = CrawlerConfig.CRAWL_DELAY_MS;
     private final HttpClient httpClient;
-    private long lastRequestTime = 0;
     
     // Patterns for extracting data from HTML
     private static final Pattern ISSUE_KEY_PATTERN = Pattern.compile("([A-Z]+-\\d+)");
@@ -65,7 +63,6 @@ public class JiraWebScraper {
      * Fetches HTML document with retry logic and rate limiting
      */
     private Document fetchDocument(String url) throws IOException, InterruptedException {
-        enforceRateLimit();
         
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
@@ -292,15 +289,5 @@ public class JiraWebScraper {
                   .replaceAll("\\s+", " ")
                   .replaceAll("[\r\n]+", " ");
     }
-    
-    private void enforceRateLimit() throws InterruptedException {
-        long currentTime = System.currentTimeMillis();
-        long timeSinceLastRequest = currentTime - lastRequestTime;
-        
-        if (timeSinceLastRequest < CRAWL_DELAY_MS) {
-            Thread.sleep(CRAWL_DELAY_MS - timeSinceLastRequest);
-        }
-        
-        lastRequestTime = System.currentTimeMillis();
-    }
+
 }
