@@ -15,7 +15,7 @@ flowchart TD
     C -- "4 - Each thread checks if it is allowed to fetch issue web page" --> n2["DomainRateLimiter - Intelligent Rate Management Component"]
     C -- "5 - Fetch the webpage containing the entire issue" --> n1
     C -- "6 - Save state to local storage upon each successful issue processing" --> n3["ThreadSafeStateManager - Manages state by storing in local storage"]
-    C -- "7 - Save issue info as JSONL" --> n4["Local storage containing JSONL files"]
+    C -- "7 - Save issue info as JSONL" --> n4["Folder name: output<br>purpose: Local storage containing JSONL files"]
     n3 --> n5["Folder name: crawl_state<br>file name: SPARK_processed.txt contains list of all JIRA issues that have been scraped<br>SPARK_state.properties contains the last inedx of JIRA issue that is in queue."]
 
     A@{ shape: rounded}
