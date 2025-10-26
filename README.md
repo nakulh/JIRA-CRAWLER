@@ -207,43 +207,10 @@ The pipeline generates JSONL files in the `output/` directory with multiple trai
 }
 ```
 
-## Error Handling & Recovery
-
-### Automatic Recovery
-- **Network failures**: Exponential backoff retry (up to 3 attempts)
-- **Rate limiting**: Automatic delay when receiving HTTP 429
-- **Server errors**: Retry logic for 5xx responses
-- **Malformed data**: Graceful handling with logging
-
 ### Manual Recovery
 - **State files**: Located in `crawl_state/` directory
 - **Resume crawling**: Automatically resumes from last successful position
 - **Reset state**: Use `java Main reset <PROJECT>` to start fresh
-
-### Monitoring
-- **Detailed logging**: Comprehensive logs for debugging
-- **Progress tracking**: Real-time progress updates
-- **Statistics**: Output file and processing statistics
-
-## Performance Optimization
-
-### Implemented Optimizations
-- **Concurrent processing**: Multi-threaded architecture
-- **Batch processing**: Processes multiple issues efficiently  
-- **Connection reuse**: HTTP client connection pooling
-- **Memory management**: Streaming processing for large datasets
-- **Rate limiting**: Prevents API throttling
-
-### Scalability Features
-- **Configurable threading**: Adjust thread pool size
-- **Batch size tuning**: Optimize API call efficiency
-- **State checkpointing**: Enables distributed processing
-- **Incremental updates**: Only processes new/changed issues
-
-### Logs and Debugging
-- Enable debug logging in `CrawlerConfig.java`
-- Check `crawl_state/` for state information
-- Monitor `output/` directory for generated files
 
 ### Technology Choices
 - **Java 11**: Modern language features, excellent HTTP client
