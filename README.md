@@ -4,10 +4,6 @@ A robust, fault-tolerant Java application that uses web scraping to extract publ
 ## 🏗️ Architecture Components
 
 ```mermaid
----
-config:
-  look: handDrawn
----
 flowchart TD
     A["IssueKeyProducer - Issue discovery thread"] -- "2 - Enqueue issue key" --> B["IssueKeyQueue - Unscraped issue Queue"]
     A -- "1 - Fetch issue keys for a project" --> n1["JIRA Website"]
