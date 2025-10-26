@@ -23,14 +23,14 @@ flowchart TD
     n1@{ shape: rect}
     D1@{ shape: fr-circ}
      A:::Peach
-     B:::Aqua
+     B:::Peach
      C:::Peach
-     n2:::Aqua
+     n2:::Peach
      n3:::Peach
      n4:::Aqua
      n5:::Aqua
-    classDef Peach stroke-width:1px, stroke-dasharray:none, stroke:#FBB35A, fill:#FFEFDB, color:#8F632D
     classDef Aqua stroke-width:1px, stroke-dasharray:none, stroke:#46EDC8, fill:#DEFFF8, color:#378E7A
+    classDef Peach stroke-width:1px, stroke-dasharray:none, stroke:#FBB35A, fill:#FFEFDB, color:#8F632D
     style D1 stroke-width:1px,stroke-dasharray: 1,stroke:none
     linkStyle 5 stroke:none,fill:none
 ```
