@@ -99,10 +99,9 @@ flowchart TD
 ## Quick Start
 
 ### Prerequisites
-- Java 11 or higher
+- Java 11 or higher (I have only tested on 23)
 - Maven 3.6 or higher
 - Internet connection for web scraping
-- Jsoup library (automatically managed by Maven)
 
 ### Installation & Running
 
@@ -249,5 +248,5 @@ The pipeline generates JSONL files in the `output/` directory with multiple trai
 ### Technology Choices
 - **Java 11**: Modern language features, excellent HTTP client
 - **Jackson**: Robust JSON processing
-- **Maven**: Standard build and dependency management
-- **No external databases**: File-based state for simplicity
+- **jsoup**: HTML parsing
+- **No external databases**: File-based state for simplicity. In prod, an off the shelf DB should be used.
