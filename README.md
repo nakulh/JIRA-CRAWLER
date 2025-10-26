@@ -1,6 +1,3 @@
-# Jira Web Scraping and Transformation Pipeline
-
-A robust, fault-tolerant Java application that uses web scraping to extract public issue data from Apache's Jira instance and transforms it into a structured JSONL format suitable for training Large Language Models (LLMs).
 ## Architecture Components
 
 ```mermaid
