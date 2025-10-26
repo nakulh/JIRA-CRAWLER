@@ -2,6 +2,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import models.CrawlState;
 
 /**
  * Producer thread that generates issue keys and adds them to the queue
@@ -90,6 +91,9 @@ public class IssueKeyProducer implements Runnable {
                     
                     startAt += issueKeys.size();
                     hasMore = issueKeys.size() >= ISSUES_PER_PAGE;
+                    
+                    // Update the lastProcessedIndex to track pagination progress
+                    stateManager.updateLastProcessedIndex(projectKey, startAt);
                     
                     // Small delay between search pages
                     Thread.sleep(1000);

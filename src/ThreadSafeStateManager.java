@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
+import models.CrawlState;
 
 /**
  * Thread-safe state manager that handles concurrent updates from multiple worker threads
@@ -127,6 +128,43 @@ public class ThreadSafeStateManager {
             return state;
         } finally {
             lock.readLock().unlock();
+        }
+    }
+    
+    /**
+     * Updates the last processed index (for pagination tracking)
+     */
+    public synchronized void updateLastProcessedIndex(String projectKey, int newIndex) {
+        try {
+            ReentrantReadWriteLock lock = stateLocks.computeIfAbsent(projectKey, 
+                k -> new ReentrantReadWriteLock());
+            
+            lock.writeLock().lock();
+            try {
+                CrawlState state = stateCache.get(projectKey);
+                if (state == null) {
+                    state = loadStateFromDisk(projectKey);
+                    stateCache.put(projectKey, state);
+                }
+                
+                // Only update if the new index is greater (progress forward)
+                if (newIndex > state.getLastProcessedIndex()) {
+                    state.setLastProcessedIndex(newIndex);
+                    state.setLastUpdateTime(System.currentTimeMillis());
+                    
+                    // Save state to disk
+                    saveStateToDisc(state);
+                    
+                    logger.fine(String.format("Updated lastProcessedIndex for project %s to %d", 
+                        projectKey, newIndex));
+                }
+                
+            } finally {
+                lock.writeLock().unlock();
+            }
+            
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Error updating lastProcessedIndex for project " + projectKey, e);
         }
     }
     

@@ -16,7 +16,7 @@ flowchart TD
     C -- "5 - Fetch the webpage containing the entire issue" --> n1
     C -- "6 - Save state to local storage upon each successful issue processing" --> n3["ThreadSafeStateManager - Manages state by storing in local storage"]
     C -- "7 - Save issue info as JSONL" --> n4["Folder name: output<br>purpose: Local storage containing JSONL files"]
-    n3 --> n5["Folder name: crawl_state<br>file name: SPARK_processed.txt contains list of all JIRA issues that have been scraped<br>SPARK_state.properties contains the last inedx of JIRA issue that is in queue."]
+    n3 --> n5["Folder name: crawl_state<br>file name: SPARK_processed.txt contains list of all JIRA issues that have been scraped<br>SPARK_state.properties contains the last index of JIRA issue that was processed. Total issues processe etc."]
 
     A@{ shape: rounded}
     B@{ shape: rect}
@@ -70,7 +70,7 @@ flowchart TD
 - **Fault Tolerant**: Individual failures don't affect other workers
 
 ### 5. **ThreadSafeStateManager** - Manages state for every JIRA project
-- **Purpose**: Save list of all issues that are processed in a separate file example - SPARK_processed.txt. Keeps index of last issue in queue in SPARK_state.properties. These files are generated per project.
+- **Purpose**: Save list of all issues that are processed in a separate file example - SPARK_processed.txt. Keeps index of last issue processed and other info in SPARK_state.properties. These files are generated per project.
 - **Thread safety**: Allows multiple worker threads to update state by using blocking techniques.
 - **Immediate Persistence**: Saves state and data after each successful scrape.
 - **Production transition**: For production, storing in local storage is not recommended as worker threads may be distributed across multiple servers. An off the shelf key-value store like DynamoDB should be used.
@@ -226,3 +226,31 @@ The pipeline generates JSONL files in the `output/` directory with multiple trai
 - **Jackson**: Robust JSON processing
 - **jsoup**: HTML parsing
 - **No external databases**: File-based state for simplicity. In prod, an off the shelf DB should be used.
+- 
+## 📁 **Current Project Organization**
+
+```
+jira-crawler/
+├── src/
+│   ├── models/                          # 📦 Data Models Package
+│   │   ├── JiraIssue.java              # Issue data model with builder pattern
+│   │   ├── JiraComment.java            # Comment data model
+│   │   └── CrawlState.java             # Crawling state model
+│   │
+│   ├── Main.java                       # 🚀 Application entry point
+│   ├── JiraCrawler.java               # 🎯 Main orchestrator
+│   ├── CrawlerConfig.java             # ⚙️ Configuration settings
+│   │
+│   ├── JiraWebScraper.java            # 🌐 HTML parsing & web scraping
+│   ├── DataTransformer.java           # 🔄 JSONL transformation
+│   ├── DataWriter.java                # 💾 Output file management
+│   │
+│   ├── IssueKeyQueue.java             # 📋 Thread-safe task queue
+│   ├── IssueKeyProducer.java          # 🏭 Issue discovery thread
+│   ├── IssueScrapingWorker.java       # 👷 Issue processing worker
+│   ├── DomainRateLimiter.java         # ⏱️ Rate limiting manager
+│   └── ThreadSafeStateManager.java    # 🔒 Thread-safe state management
+│
+├── pom.xml                            # 📋 Maven build configuration
+├── README.md                          # 📖 Project documentation
+```

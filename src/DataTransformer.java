@@ -6,6 +6,8 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.List;
 import java.util.ArrayList;
+import models.JiraIssue;
+import models.JiraComment;
 
 /**
  * Transforms raw Jira data into structured JSONL format suitable for LLM training

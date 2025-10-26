@@ -38,22 +38,6 @@ public class DataWriter {
     }
     
     /**
-     * Writes multiple records at once for better performance
-     */
-    public synchronized void writeRecords(String projectKey, String[] jsonlRecords) {
-        try {
-            BufferedWriter writer = getOrCreateWriter(projectKey);
-            for (String record : jsonlRecords) {
-                writer.write(record);
-            }
-            writer.flush();
-            
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error writing batch records for project " + projectKey, e);
-        }
-    }
-    
-    /**
      * Gets or creates a writer for the specified project
      */
     private BufferedWriter getOrCreateWriter(String projectKey) throws IOException {

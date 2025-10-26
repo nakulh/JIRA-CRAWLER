@@ -1,3 +1,5 @@
+package models;
+
 /**
  * Represents the current state of crawling for a project
  */

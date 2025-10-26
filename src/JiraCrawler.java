@@ -2,6 +2,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import models.CrawlState;
 
 /**
  * Main orchestrator for the multi-threaded Jira data scraping and transformation pipeline
