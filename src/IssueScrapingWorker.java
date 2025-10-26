@@ -16,7 +16,7 @@ public class IssueScrapingWorker implements Runnable {
     private final DomainRateLimiter rateLimiter;
     private final DataTransformer transformer;
     private final DataWriter dataWriter;
-    private final StateManager stateManager;
+    private final ThreadSafeStateManager stateManager;
     private final AtomicBoolean shouldStop;
     private final AtomicInteger processedCount;
     
@@ -25,7 +25,7 @@ public class IssueScrapingWorker implements Runnable {
     
     public IssueScrapingWorker(int workerId, IssueKeyQueue queue, JiraWebScraper webScraper,
                               DomainRateLimiter rateLimiter, DataTransformer transformer,
-                              DataWriter dataWriter, StateManager stateManager) {
+                              DataWriter dataWriter, ThreadSafeStateManager stateManager) {
         this.workerId = workerId;
         this.queue = queue;
         this.webScraper = webScraper;
@@ -99,6 +99,12 @@ public class IssueScrapingWorker implements Runnable {
      */
     private boolean processIssue(IssueKeyQueue.IssueKeyTask task) {
         try {
+            // Check if already processed (thread-safe, idempotent)
+            if (stateManager.isIssueProcessed(task.getProjectKey(), task.getIssueKey())) {
+                logger.fine("Issue already processed by another worker: " + task.getIssueKey());
+                return true; // Already processed, consider it successful
+            }
+            
             // Wait for rate limiting permission
             rateLimiter.waitForPermission(JIRA_DOMAIN);
             
@@ -124,8 +130,13 @@ public class IssueScrapingWorker implements Runnable {
             // Write to output file immediately
             dataWriter.writeRecord(task.getProjectKey(), jsonlRecord);
             
-            // Update and save state immediately
-            updateState(task);
+            // Record as processed (thread-safe, prevents race conditions)
+            boolean recorded = stateManager.recordProcessedIssue(task.getProjectKey(), task.getIssueKey());
+            
+            if (!recorded) {
+                logger.fine("Issue was processed by another worker concurrently: " + task.getIssueKey());
+                // Still return true as the issue was processed successfully
+            }
             
             // Flush output to ensure data is written
             dataWriter.flush();
@@ -141,22 +152,7 @@ public class IssueScrapingWorker implements Runnable {
         }
     }
     
-    /**
-     * Updates the crawling state for the processed issue
-     */
-    private void updateState(IssueKeyQueue.IssueKeyTask task) {
-        try {
-            CrawlState state = stateManager.loadState(task.getProjectKey());
-            state.setLastProcessedIssue(task.getIssueKey());
-            state.setTotalProcessed(state.getTotalProcessed() + 1);
-            state.setLastUpdateTime(System.currentTimeMillis());
-            
-            stateManager.saveState(state);
-            
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Error updating state for issue " + task.getIssueKey(), e);
-        }
-    }
+
     
     /**
      * Polls the queue with a timeout to avoid blocking indefinitely

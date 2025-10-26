@@ -11,7 +11,7 @@ public class JiraCrawler {
     
     private final JiraWebScraper webScraper;
     private final DataTransformer transformer;
-    private final StateManager stateManager;
+    private final ThreadSafeStateManager stateManager;
     private final DataWriter dataWriter;
     private final IssueKeyQueue issueQueue;
     private final DomainRateLimiter rateLimiter;
@@ -26,7 +26,7 @@ public class JiraCrawler {
     public JiraCrawler() {
         this.webScraper = new JiraWebScraper();
         this.transformer = new DataTransformer();
-        this.stateManager = new StateManager();
+        this.stateManager = new ThreadSafeStateManager();
         this.dataWriter = new DataWriter();
         this.issueQueue = new IssueKeyQueue();
         this.rateLimiter = new DomainRateLimiter(CrawlerConfig.CRAWL_DELAY_MS);
@@ -170,6 +170,9 @@ public class JiraCrawler {
             
             // Shutdown rate limiter
             rateLimiter.shutdown();
+            
+            // Shutdown state manager
+            stateManager.shutdown();
             
             // Close data writer
             dataWriter.close();

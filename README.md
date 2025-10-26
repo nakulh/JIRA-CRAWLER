@@ -1,7 +1,7 @@
 # Jira Web Scraping and Transformation Pipeline
 
 A robust, fault-tolerant Java application that uses web scraping to extract public issue data from Apache's Jira instance and transforms it into a structured JSONL format suitable for training Large Language Models (LLMs).
-## 🏗️ Architecture Components
+## Architecture Components
 
 ```mermaid
 flowchart TD
@@ -14,8 +14,10 @@ flowchart TD
     C -- "3 - Take issue key from queue" --> B
     C -- "4 - Each thread checks if it is allowed to fetch issue web page" --> n2["DomainRateLimiter - Intelligent Rate Management Component"]
     C -- "5 - Fetch the webpage containing the entire issue" --> n1
-    C -- "6 - Save state to local storage upon each successful issue processing" --> n3["Local file containing state for each Jira project"]
+    C -- "6 - Save state to local storage upon each successful issue processing" --> n3["ThreadSafeStateManager - Manages state by storing in local storage"]
     C -- "7 - Save issue info as JSONL" --> n4["Local storage containing JSONL files"]
+    n3 --> n5["Folder name: crawl_state<br>file name: SPARK_processed.txt contains list of all JIRA issues that have been scraped<br>SPARK_state.properties contains the last inedx of JIRA issue that is in queue."]
+
     A@{ shape: rounded}
     B@{ shape: rect}
     n1@{ shape: rect}
@@ -24,8 +26,9 @@ flowchart TD
      B:::Aqua
      C:::Peach
      n2:::Aqua
-     n3:::Aqua
+     n3:::Peach
      n4:::Aqua
+     n5:::Aqua
     classDef Peach stroke-width:1px, stroke-dasharray:none, stroke:#FBB35A, fill:#FFEFDB, color:#8F632D
     classDef Aqua stroke-width:1px, stroke-dasharray:none, stroke:#46EDC8, fill:#DEFFF8, color:#378E7A
     style D1 stroke-width:1px,stroke-dasharray: 1,stroke:none
@@ -60,17 +63,23 @@ flowchart TD
 ```
 
 ### 4. **IssueScrapingWorker** - Web scrapping threads
-- **Purpose**: Processes individual issues from the queue, fetches the issue webpage from JIRA and extracts all relavant info. Architected as a separate thread pool to represent the fact that in production, each thread can scrape through a virtual IP, allowing better rate limits.
+- **Purpose**: Processes individual issues from the queue, fetches the issue webpage from JIRA and extracts all relevant info. Architected as a separate thread pool to represent the fact that in production, each thread can scrape through a virtual IP, allowing better rate limits.
 - **Multiple Workers**: Configurable number of worker threads (4 by default)
 - **Independent Processing**: Each worker operates independently
 - **Immediate Persistence**: Saves state and data after each successful scrape
 - **Fault Tolerant**: Individual failures don't affect other workers
 
+### 5. **ThreadSafeStateManager** - Manages state for every JIRA project
+- **Purpose**: Save list of all issues that are processed in a separate file example - SPARK_processed.txt. Keeps index of last issue in queue in SPARK_state.properties. These files are generated per project.
+- **Thread safety**: Allows multiple worker threads to update state by using blocking techniques.
+- **Immediate Persistence**: Saves state and data after each successful scrape.
+- **Production transition**: For production, storing in local storage is not recommended as worker threads may be distributed across multiple servers. An off the shelf key-value store like DynamoDB should be used.
+
 ## Features
 
-### 🚀 Core Capabilities
-- **Web scraping approach**: Uses HTML parsing instead of API calls for unrestricted access
-- **Multi-project scraping**: Extracts data from Apache Kafka, Spark, and Hadoop projects
+### Core Capabilities
+- **Web scraping approach**: Uses HTML parsing
+- **Multi-project scraping**: Extracts data from multiple Apache projects
 - **Comprehensive data extraction**: Issues, comments, metadata, status, priority, assignee, labels, timestamps
 - **Intelligent pagination**: Handles large datasets with automatic page navigation
 - **Rate limiting**: Respects server limits with configurable delays between requests
@@ -78,7 +87,7 @@ flowchart TD
 - **Resumable crawling**: State management allows resumption after interruptions
 - **Multiple training formats**: Generates summarization, classification, Q&A, and conversation tasks
 
-### 🛡️ Reliability Features
+### Reliability Features
 - **HTML parsing resilience**: Multiple CSS selectors for robust data extraction
 - **Request failure handling**: Automatic retries for network issues
 - **HTTP error handling**: Proper handling of 429 (rate limit) and 5xx responses
@@ -86,7 +95,7 @@ flowchart TD
 - **State persistence**: Saves progress to enable recovery from interruptions
 - **User-Agent rotation**: Mimics real browser requests to avoid blocking
 
-### 📊 Data Transformation
+### Data Transformation
 - **Clean JSONL output**: Structured format optimized for LLM training
 - **Multiple task types**: 
   - Summarization tasks (issue description → summary)

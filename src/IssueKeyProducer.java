@@ -13,7 +13,7 @@ public class IssueKeyProducer implements Runnable {
     private final IssueKeyQueue queue;
     private final JiraWebScraper webScraper;
     private final DomainRateLimiter rateLimiter;
-    private final StateManager stateManager;
+    private final ThreadSafeStateManager stateManager;
     private final String projectKey;
     private final AtomicBoolean shouldStop;
     
@@ -21,7 +21,7 @@ public class IssueKeyProducer implements Runnable {
     private static final String JIRA_DOMAIN = "issues.apache.org";
     
     public IssueKeyProducer(IssueKeyQueue queue, JiraWebScraper webScraper, 
-                           DomainRateLimiter rateLimiter, StateManager stateManager, 
+                           DomainRateLimiter rateLimiter, ThreadSafeStateManager stateManager, 
                            String projectKey) {
         this.queue = queue;
         this.webScraper = webScraper;
@@ -36,7 +36,7 @@ public class IssueKeyProducer implements Runnable {
         logger.info("Starting issue key producer for project: " + projectKey);
         
         try {
-            CrawlState state = stateManager.loadState(projectKey);
+            CrawlState state = stateManager.getCurrentState(projectKey);
             int startAt = state.getLastProcessedIndex();
             boolean hasMore = true;
             
@@ -67,8 +67,8 @@ public class IssueKeyProducer implements Runnable {
                     // Add issue keys to queue
                     int addedCount = 0;
                     for (String issueKey : issueKeys) {
-                        // Skip if already processed
-                        if (issueKey.equals(state.getLastProcessedIssue())) {
+                        // Skip if already processed (thread-safe check)
+                        if (stateManager.isIssueProcessed(projectKey, issueKey)) {
                             logger.fine("Skipping already processed issue: " + issueKey);
                             continue;
                         }

@@ -48,19 +48,21 @@ public class Main {
                 break;
                 
             case "status":
-                StateManager stateManager = new StateManager();
+                ThreadSafeStateManager stateManager = new ThreadSafeStateManager();
                 stateManager.printStateSummary();
                 
                 DataWriter dataWriter = new DataWriter();
                 dataWriter.printStatistics();
                 dataWriter.close();
+                stateManager.shutdown();
                 break;
                 
             case "reset":
                 if (args.length > 1) {
                     String project = args[1].toUpperCase();
-                    StateManager resetManager = new StateManager();
+                    ThreadSafeStateManager resetManager = new ThreadSafeStateManager();
                     resetManager.resetState(project);
+                    resetManager.shutdown();
                     System.out.println("Reset state for project: " + project);
                 } else {
                     System.out.println("Usage: java Main reset <PROJECT_KEY>");
